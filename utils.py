@@ -25,7 +25,7 @@ class Colors:
     def hex2rgb(h):  # rgb order (PIL)
         return tuple(int(h[1 + i:1 + i + 2], 16) for i in (0, 2, 4))
 
-def plot_one_box(box, im, color=(128, 128, 128), txt_color=(255, 255, 255), label=None, line_width=3):
+def plot_one_box(box, im, color=(128, 128, 128), txt_color=(255, 255, 255), label=None, line_width=2):
 
     # Plots one xyxy box on image im with label
     assert im.data.contiguous, 'Image not contiguous. Apply np.ascontiguousarray(im) to plot_on_box() input image.'
@@ -68,9 +68,11 @@ def get_image_tensor(img, max_size, debug=False):
     """
     if type(img) is str:
         img = cv2.imread(img)
+        # print("**",img)
     
     resized, pad = resize_and_pad(img, max_size)
     resized = resized.astype(np.float32)
+    # print("**",type(resized))
     
     if debug:
         cv2.imwrite("intermediate.png", resized)

@@ -128,9 +128,20 @@ class EdgeTPUModel:
         base, ext = os.path.splitext(image_path)
         
         output_path = base + "_detect" + ext
-        det = self.process_predictions(pred[0], full_image, pad, output_path, save_img=save_img, save_txt=save_txt)
+        det, output = self.process_predictions(pred[0], full_image, pad, output_path, save_img=save_img, save_txt=save_txt)
         
-        return det
+        return det, output
+
+    def _predict(self, image_path, save_img=True, save_txt=True):
+        "image_path不再是一个路径，而是图片numpy数据"
+    
+        full_image, net_image, pad = get_image_tensor(image_path, self.input_size[0])
+        pred = self.forward(net_image)
+
+        output_path = './output' + "_detect.jpg" 
+        det, output = self.process_predictions(pred[0], full_image, pad, output_path, save_img=save_img, save_txt=save_txt)
+        
+        return det, output
         
         
     
@@ -233,7 +244,7 @@ class EdgeTPUModel:
             det[:, :4] = self.get_scaled_coords(det[:,:4], output_image, pad)
             output = {}
             base, ext = os.path.splitext(output_path)
-            
+               
             s = ""
             
             # Print results
@@ -247,24 +258,28 @@ class EdgeTPUModel:
             
             logger.info("Detected: {}".format(s))
             
+
             # Write results
+            count = 0
             for *xyxy, conf, cls in reversed(det):
+                # print ("---------",*xyxy, conf, cls)
                 if save_img:  # Add bbox to image
                     c = int(cls)  # integer class
                     label = None if hide_labels else (self.names[c] if hide_conf else f'{self.names[c]} {conf:.2f}')
                     output_image = plot_one_box(xyxy, output_image, label=label, color=self.colors(c, True))
                 if save_txt:
-                    output[base] = {}
-                    output[base]['box'] = xyxy
-                    output[base]['conf'] = conf
-                    output[base]['cls'] = cls
-                    output[base]['cls_name'] = self.names[c]
-                    
-            if save_txt:
-                output_txt = base+"txt"
-                with open(output_txt, 'w') as f:
-                   json.dump(output, f, indent=1)
-            if save_img:
-              cv2.imwrite(output_path, output_image)
-            
-        return det
+                    output[str(count)] = {}
+                    output[str(count)]['box'] = xyxy
+                    output[str(count)]['conf'] = conf
+                    # output[count]['cls'] = cls
+                    output[str(count)]['cls_name'] = self.names[c]
+                    count += 1  #追加检测目标
+                    # out_final[count] = output
+                # if save_txt:
+                    output_txt = base+"txt"
+                    with open(output_txt, 'w') as f:
+                        json.dump(output, f, indent=1)
+                if save_img:
+                    cv2.imwrite(output_path, output_image)  
+
+        return det, output

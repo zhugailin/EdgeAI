@@ -12,6 +12,7 @@ from tqdm import tqdm
 import cv2
 import yaml
 
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -44,7 +45,7 @@ if __name__ == "__main__":
         logger.error("Please select either an input image or a stream")
         exit(1)
     
-    model = EdgeTPUModel(args.model, args.names, conf_thresh=args.conf_thresh, iou_thresh=args.iou_thresh)
+    model = EdgeTPUModel(args.model, args.names,  conf_thresh=args.conf_thresh, iou_thresh=args.iou_thresh)
     input_size = model.get_image_size()
 
     x = (255*np.random.random((3,*input_size))).astype(np.uint8)
@@ -91,8 +92,8 @@ if __name__ == "__main__":
     elif args.bench_coco:
         logger.info("Testing on COCO dataset")
         
-        model.conf_thresh = 0.001
-        model.iou_thresh = 0.65
+        model.conf_thresh = 0.25
+        model.iou_thresh = 0.45
         
         coco_glob = os.path.join(args.coco_path, "*.jpg")
         images = glob.glob(coco_glob)
